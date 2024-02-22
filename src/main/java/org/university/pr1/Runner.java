@@ -43,7 +43,7 @@ public class Runner {
                     polybiusEncryptingAndDecrypting();
                     continue;
                 case 3:
-                    cardanoCipherEncrypt();
+                    cardanoCipherEncryptAndDecrypt();
                     continue;
                 case 4:
                     playfairCipherEncrypt();
@@ -89,18 +89,22 @@ public class Runner {
         System.out.println();
     }
 
-    private static void cardanoCipherEncrypt() {
+    private static void cardanoCipherEncryptAndDecrypt() {
         System.out.println("--- КВАДРАТ КАРДАНО  ---");
 
-        System.out.println("Введите тексе:");
+        System.out.println("Введите размер квадрата [длина стороны]: ");
+        int gridSize = new Scanner(System.in).nextInt();
+
+        int maxLength = (gridSize * gridSize) / 2;
+        System.out.println("Введите текст (макс длина = " + maxLength + "): ");
         String text = new Scanner(System.in).nextLine();
 
-        String encrypt = cardanoGrid.encrypt(text);
+        String encrypt = cardanoGrid.encrypt(text, gridSize);
         System.out.println(
-                "Source text: " + text + "\n" +
-                "Encrypt text: " + encrypt);
+                "Source text: " + text + ", стороны квадрата: " + gridSize + "\n" +
+                "Encrypt txt: " + encrypt);
 
-        String decrypt = polybiusSquare.decrypt(encrypt);
+        String decrypt = cardanoGrid.decrypt(encrypt);
         System.out.println(
                 "Decrypt text: " + decrypt);
 
