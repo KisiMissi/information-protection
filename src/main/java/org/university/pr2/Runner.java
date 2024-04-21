@@ -7,8 +7,13 @@ package org.university.pr2;
 public class Runner {
     public static void main(String[] args) {
 
-        String encrypt = new DES_ECB_Encrypt().action("ab", "key");
-        System.out.println(encrypt);
+        String word = "abcde";
+        String key = "key";
 
+        String encrypt = new DES_ECB_Encrypt().action(word, key);
+        System.out.println("===ENCYPT===\n" + encrypt);
+
+        String decrypt = new DES_ECB_Decrypt().action(encrypt, key);
+        System.out.println("===DECRYPT===\n" + decrypt);
     }
 }

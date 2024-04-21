@@ -2,7 +2,7 @@ package org.university.pr2;
 
 import java.util.List;
 
-public class DES_ECB_Encrypt {
+public class DES_ECB_Decrypt {
 
     private static final List<Integer> WORD_ORDER = ECBData.getWordOrder();
     private static final List<Integer> EXPANSION_ORDER = ECBData.getExpansionOrder();
@@ -10,26 +10,29 @@ public class DES_ECB_Encrypt {
     private static final List<Integer> F_FINAL_ORDER = ECBData.getFFinalOrder();
     private static final List<Integer> FINAL_ORDER = ECBData.getFinalOrder();
 
-    public String action(String word, String key) {
-        // перевод слова и ключа в двоичную UTF-8
-        String s = conventToBinary(word);
+    public String action(String binaryString, String key) {
+        // отмена последней перестановки
+        String s1 = reverseFinalPermutation(binaryString);
+
+        // перевод ключа в двоичную и расширение до 64
         String k = conventToBinary(key);
-
-        // расширение слова и ключа до 64 бит
-        String s2 = expansionTo64(s);
         String k2 = expansionTo64(k);
-        System.out.println("---EXPANSION 64---\nWord: " + s + ", " + s2 + "\nKey: " + k + ", " + k2);
 
-        // начальная перестановка слова, расширенного до 64 бит
-        String s3 = initialWordPermutation(s2);
-        System.out.println("---WORD INITIAL PERMUTATION---\n" + s3);
+        // обратное разделение и смена 16 -> 1
+        String s2 = reverseSeparateAndSwap(s1, k2);
 
-        // процесс разделения и смены правой и левой частей
-        String s4 = separateAndSwap(s3, k2);
-        System.out.println("---WORD AFTER SPLIT AND SWAP---\n" + s4);
+        // обратная начальная перестановка слова
+        String s3 = reverseInitialPermutation(s2);
 
-        // финальная перестановка полученного значения
-        return finalWordPermutation(s4);
+        return binaryToWord(s3);
+    }
+
+    private String reverseFinalPermutation(String binaryString) {
+        char[] builder = new char[64];
+        for (int i = 0; i < 64; i++) {
+            builder[FINAL_ORDER.get(i) - 1] = binaryString.charAt(i);
+        }
+        return String.valueOf(builder);
     }
 
     private String conventToBinary(String word) {
@@ -53,33 +56,24 @@ public class DES_ECB_Encrypt {
         return new String(new char[64 - wordLen]).replace("\0", "0") + binaryWord;
     }
 
-    private String initialWordPermutation(String binaryWord) {
-        StringBuilder binary = new StringBuilder();
-        for (int i = 0; i < 64; i++) {
+    private String reverseSeparateAndSwap(String binaryWord, String key) {
+        String right0 = "";
+        String left0 = "";
 
-            binary.append(binaryWord.charAt(WORD_ORDER.get(i) - 1));
-        }
-        return binary.toString();
-    }
+        String left1 = binaryWord.substring(0, 32);
+        String right1 = binaryWord.substring(32, 64);
 
-    private String separateAndSwap(String binaryWord, String key) {
-        String resultRight = "";
-        String resultLeft = "";
-
-        String left = binaryWord.substring(0, 32);
-        String right = binaryWord.substring(32, 64);
-
-        for (int i = 0; i < 16; i++) {
+        for (int i = 15; i >= 0; i--) {
             System.out.println("---ITERATION " + i + "---");
             String key4 = key.substring(4 * i, (4 * i) + 4);
 
-            resultLeft = right;
-            resultRight = xor(left, F(right, key4), 32);
+            left0 = xor(right1, F(left1, key4), 32);
+            right0 = left1;
 
-            right = resultRight;
-            left = resultLeft;
+            left1 = left0;
+            right1 = right0;
         }
-        return resultLeft + resultRight;
+        return left0 + right0;
     }
 
     private String F(String right32, String key4) {
@@ -153,11 +147,24 @@ public class DES_ECB_Encrypt {
         return binary32.toString();
     }
 
-    private String finalWordPermutation(String binaryString) {
-        StringBuilder binary64 = new StringBuilder();
+    private String reverseInitialPermutation(String binaryString) {
+        char[] builder = new char[64];
         for (int i = 0; i < 64; i++) {
-            binary64.append(binaryString.charAt(FINAL_ORDER.get(i) - 1));
+            builder[WORD_ORDER.get(i) - 1] = binaryString.charAt(i);
         }
-        return binary64.toString();
+        return String.valueOf(builder);
+    }
+
+    private String binaryToWord(String binaryString) {
+        StringBuilder builder = new StringBuilder();
+        for (int i=0; i<8; i++) {
+            String emptyChar = "";
+            String substring = binaryString.substring(8 * i, (8 * i) + 8);
+            if (substring.equals("00000000"))
+                builder.append(emptyChar);
+            else
+                builder.append((char) Integer.parseInt(substring, 2));
+        }
+        return builder.toString();
     }
 }
