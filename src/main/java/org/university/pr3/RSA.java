@@ -67,9 +67,9 @@ public class RSA {
     }
 
     private int getE(int eulerFuncValue) {
-        int e = 0;
+        int e = p - 1;
         while (recursiveGCD(e, eulerFuncValue) != 1) {
-            e++;
+            e--;
         }
         return e;
     }
@@ -86,16 +86,11 @@ public class RSA {
 
 
     private Integer getD(int eulerFuncValue, int e) {
-        double d = 0d;
-        int k = 1;
-        while (true) {
-            d = (double) (k * eulerFuncValue + 1) / e;
-            if (d % 1 == 0) {
-                break;
-            }
-            k++;
+        int d = 0;
+        while ((d * e) % eulerFuncValue != 1) {
+            d++;
         }
-        return (int) d;
+        return d;
     }
 
 }
